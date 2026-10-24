@@ -11,6 +11,7 @@ import SwiftData
 import CryptoKit
 import FirebaseAuth
 import FirebaseFirestore
+import os
 
 @MainActor
 final class SyncManager: ObservableObject {
@@ -21,6 +22,8 @@ final class SyncManager: ObservableObject {
     @Published var lastSyncError: String?
     
     private let defaults = UserDefaults.standard
+    
+    private let logger = Logger()
         
     private enum Keys {
         static let lastUpdated = "lastUpdated"
@@ -28,6 +31,9 @@ final class SyncManager: ObservableObject {
         static let prefLastSynced = "pref_last_synced"
         static let prefEnableSync = "enable_sync"
         static let prefEnableBgSync = "enable_background_sync"
+        static let prefSyncID = "syncing_id"
+        static let prefSyncPassword = "syncing_password"
+        static let prefSyncKey = "syncing_key"
     }
     var lastUpdated: Date {
         get {
@@ -68,6 +74,27 @@ final class SyncManager: ObservableObject {
         }
     }
     
+    var prefSyncID: String {
+        get {
+            return defaults.object(forKey: Keys.prefSyncID) as? String ?? ""
+        }
+        set {
+            objectWillChange.send()
+            defaults.set(newValue, forKey: Keys.prefSyncID)
+        }
+    }
+    
+    var prefSyncPassword: String {
+        get {
+            return defaults.object(forKey: Keys.prefSyncPassword) as? String ?? ""
+        }
+        set {
+            objectWillChange.send()
+            defaults.set(newValue, forKey: Keys.prefSyncPassword)
+        }
+    }
+    
+    
     private let db = Firestore.firestore()
     private let keychain = KeychainHelper.shared
     private var uid: String = ""
@@ -77,14 +104,20 @@ final class SyncManager: ObservableObject {
     @discardableResult
     private func ensureAuthenticated() async throws -> String {
         if let currentUID = Auth.auth().currentUser?.uid {
+            if let (savedEmail, savedPassword) = try? keychain.getFirestoreAuth() {
+                prefSyncID = savedEmail
+                prefSyncPassword = savedPassword
+            }
             return currentUID
         }
         if let (savedEmail, savedPassword) = try? keychain.getFirestoreAuth() {
             do {
+                prefSyncID = savedEmail
+                prefSyncPassword = savedPassword
                 let authResult = try await Auth.auth().signIn(withEmail: savedEmail, password: savedPassword)
                 return authResult.user.uid
             } catch {
-                print("Login Failed: \(error)")
+                logger.error("Login Failed: \(error, privacy: .public)")
             }
         }
         
@@ -96,6 +129,9 @@ final class SyncManager: ObservableObject {
         let newUID = authResult.user.uid
         
         try keychain.saveFirestoreAuth(email: dummyEmail, password: dummyPassword)
+        
+        prefSyncID = dummyEmail
+        prefSyncPassword = dummyPassword
         
         return newUID
     }
@@ -124,11 +160,11 @@ final class SyncManager: ObservableObject {
                 try modelContext.save()
                 
                 lastSynced = syncStartTime
-                print("Successfully synced at \(syncStartTime)")
+                logger.info("Successfully synced at \(syncStartTime, privacy: .public)")
                 
             } catch {
                 self.lastSyncError = error.localizedDescription
-                print("Sync failed: \(error)")
+                logger.error("Sync failed: \(error, privacy: .public)")
             }
         }
     }
@@ -186,10 +222,10 @@ final class SyncManager: ObservableObject {
         targetCollection: CollectionReference,
         key: SymmetricKey
     ) async throws {
-        let snapshot = try await targetCollection.whereField("lastSynced", isGreaterThan: Timestamp(date: lastSynced)).getDocuments()
+        let snapshot = try await targetCollection.whereField("lastSynced", isGreaterThan: Timestamp(date: lastSynced)).getDocuments(source: .server)
         // let snapshot = try await targetCollection.getDocuments()
         
-        print("\(snapshot.documents.count) records downloaded")
+        logger.info("\(snapshot.documents.count, privacy: .public) records downloaded")
         
         for document in snapshot.documents {
             let data = document.data()
@@ -207,7 +243,7 @@ final class SyncManager: ObservableObject {
                   let sealedBox = try? AES.GCM.SealedBox(combined: payloadData),
                   let decryptedData = try? AES.GCM.open(sealedBox, using: key),
                   let payload = try? JSONDecoder().decode(SyncPayload.self, from: decryptedData) else {
-                print("Failed to decrypt record: \(idStr)")
+                logger.error("Failed to decrypt record: \(idStr, privacy: .public)")
                 continue
             }
             

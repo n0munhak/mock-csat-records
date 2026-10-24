@@ -17,6 +17,17 @@ enum KeychainError: Error {
 }
 
 final class KeychainHelper {
+    private let defaults = UserDefaults.standard
+    
+    var prefSyncKey: String {
+        get {
+            return defaults.object(forKey: "syncing_key") as? String ?? ""
+        }
+        set {
+            defaults.set(newValue, forKey: "syncing_key")
+        }
+    }
+    
     static let shared = KeychainHelper()
     private init() {}
     
@@ -83,17 +94,19 @@ final class KeychainHelper {
         let oldKeyName = "user_encryption_symmetric_key"
         do {
             let data = try read(key: keyName)
+            prefSyncKey = String(data: data, encoding: .utf8)!
             return SymmetricKey(data: Data(base64Encoded: String(data: data, encoding: .utf8)!)!)
         } catch KeychainError.itemNotFound {
             do {
                 let rawData = try read(key: oldKeyName)
                 let b64Encoded = rawData.base64EncodedString()
+                prefSyncKey = b64Encoded
                 try save(key: keyName, data: b64Encoded.data(using: .utf8)!)
                 return SymmetricKey(data: rawData)
             } catch KeychainError.itemNotFound {
                 let newKey = SymmetricKey(size: .bits256)
                 let keyData = newKey.withUnsafeBytes { Data($0) }
-                try save(key: keyName, data: keyData)
+                try save(key: keyName, data: keyData.base64EncodedString().data(using: .utf8)!)
                 return newKey
             }
         }
@@ -101,6 +114,7 @@ final class KeychainHelper {
     
     func setSymmetricKey(b64EncodedKey: String) throws {
         let keyName = "user_encryption_symmetric_key_base64"
+        prefSyncKey = b64EncodedKey
         try save(key: keyName, data: b64EncodedKey.data(using: .utf8)!)
     }
     

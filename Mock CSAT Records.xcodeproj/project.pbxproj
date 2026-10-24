@@ -12,6 +12,7 @@
 		4F877E243027545A00BEC1E9 /* BackgroundSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F877E233027545A00BEC1E9 /* BackgroundSyncManager.swift */; };
 		4F87E566301EDF590065681A /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 4F87E565301EDF590065681A /* ZIPFoundation */; };
 		4F87E60A301F18E50065681A /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 4F87E609301F18E50065681A /* FirebaseFirestore */; };
+		4F989416308C5AD8001E7957 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 4F989415308C5AD8001E7957 /* .gitignore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +38,7 @@
 		4F9520DE2FF689C7008C30FC /* CSAT Records.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CSAT Records.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F9520EF2FF689CA008C30FC /* Mock CSAT RecordsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Mock CSAT RecordsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F9520F92FF689CA008C30FC /* Mock CSAT RecordsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Mock CSAT RecordsUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F989415308C5AD8001E7957 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -115,6 +117,7 @@
 				4F9520FC2FF689CA008C30FC /* Mock CSAT RecordsUITests */,
 				4F877E203027073500BEC1E9 /* Frameworks */,
 				4F9520DF2FF689C7008C30FC /* Products */,
+				4F989415308C5AD8001E7957 /* .gitignore */,
 			);
 			sourceTree = "<group>";
 		};
@@ -255,6 +258,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4F989416308C5AD8001E7957 /* .gitignore in Resources */,
 				4F147AFA2FF92EEF005A0734 /* InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -192,6 +192,14 @@
 		</dict>
 		<dict>
 			<key>Type</key>
+			<string>PSChildPaneSpecifier</string>
+			<key>Title</key>
+			<string>동기화 계정 정보</string>
+			<key>File</key>
+			<string>SyncIdentity</string>
+		</dict>
+		<dict>
+			<key>Type</key>
 			<string>PSToggleSwitchSpecifier</string>
 			<key>Title</key>
 			<string>다음 실행 시 백업</string>
